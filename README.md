@@ -75,12 +75,55 @@ bun run ./index.ts
 ```bash
 you: 你好
 你好！很高兴为你服务。有什么我可以帮助你的吗？或者你有其他问题想问？
+```
 
+## Step 3: 保存对话历史
+
+改造代码，添加对话历史保存逻辑
+
+```ts
+// 导入依赖
+import ollama, { type ChatResponse } from 'ollama'
+
+const user_input = await console[Symbol.asyncIterator]()
+const messages = [] // 存储用户输入和模型回复
+
+while (true) {
+    // 获取用户输入
+    process.stdout.write('\nyou: ')
+    const { value }: { value: string } = await user_input.next()
+
+    // 将用户输入添加到消息列表
+    messages.push({ role: 'user', content: value.trim() })
+
+    // 调用模型
+    const response: ChatResponse = await ollama.chat({
+        model: 'qwen3.5:2b',
+        messages: messages,
+        think: false, // 禁用思考模式
+    })
+
+    const content = response.message.content
+    // 将模型回复添加到消息列表
+    messages.push({ role: 'assistant', content: content })
+
+    // 打印模型回复
+    console.log(`llm: ${content}`)
+}
+```
+
+启动脚本
+
+```bash
+bun run ./index.ts
+```
+
+测试多轮对话的上下文保持
+
+```bash
 you: 1+1=？
-llm: 1+1=2
+llm: $1+1=2$
 
-you: 2+2=？
-llm: 2+2=4
-
-you:
+you: 再+1
+llm: $2 + 1 = 3$所以结果是：**3**。
 ```
