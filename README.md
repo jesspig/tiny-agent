@@ -1,4 +1,4 @@
-# mini-agent
+# tiny-agent
 
 逐步构建一个简单的 Agent
 
@@ -177,8 +177,8 @@ messages.push({
 user: <task>查看当前目录所在路径</task>
 assistant: <thought>我需要查看当前目录所在路径</thought>
 assistant: <command>pwd</command>
-shell: <observation>/workspaces/mini-agent</observation>
-assistant: <answer>当前目录所在路径为：/workspaces/mini-agent</answer>
+shell: <observation>/workspaces/tiny-agent</observation>
+assistant: <answer>当前目录所在路径为：/workspaces/tiny-agent</answer>
 `
 })
 

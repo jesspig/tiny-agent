@@ -1,5 +1,5 @@
 {
-  "name": "mini-agent",
+  "name": "tiny-agent",
   "module": "index.ts",
   "type": "module",
   "private": true,

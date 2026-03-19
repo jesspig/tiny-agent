@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "mini-agent",
+      "name": "tiny-agent",
       "dependencies": {
         "ollama": "^0.6.3",
       },
