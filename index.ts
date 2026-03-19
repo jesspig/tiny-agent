@@ -1,13 +1,19 @@
 // 导入依赖
 import { $ } from 'bun'
-import ollama, { type ChatResponse } from 'ollama'
+import OpenAI from 'openai'
+import type { ChatCompletion } from 'openai/resources'
+
+const client = new OpenAI({
+    baseURL: 'http://127.0.0.1:11434/v1',
+    apiKey: 'ollama',
+})
 
 const user_input = await console[Symbol.asyncIterator]()
-const messages = [] // 存储用户输入和模型回复
+const messages: OpenAI.ChatCompletionMessageParam[] = [] // 存储用户输入和模型回复
 
 // 添加系统提示
 messages.push({
-    role: 'system', content: `你的目标是完成用户的任务。你必须选择以下的其中一个XML格式进行回复，**一次且仅能输出一个标签**：
+    role: 'system', content: `你的目标是完成用户的任务，你必须选择以下的其中一个XML格式进行回复，**一次且仅能输出一个标签**：
 - <thought>思考内容</thought>: 先思考要做什么
 - <command>命令内容</command>: 需要执行系统命令时输出，内容为纯命令（例如 "echo hello"）
 - <observation>系统返回结果</observation>: 系统返回的结果，不能自己生成
@@ -38,17 +44,17 @@ while (true) {
     messages.push({ role: 'user', content: `<task>${value.trim()}</task>` })
 
     // 开始 ReAct 循环
-    console.log('\n-------ReAct Start-------')
+    console.log('\n------- ReAct Start -------')
     while (true) {
         // 调用模型
-        const response: ChatResponse = await ollama.chat({
+        const response: ChatCompletion = await client.chat.completions.create({
             model: 'qwen3.5:2b',
             messages: messages,
-            think: false, // 禁用思考模式
+            reasoning_effort: 'low',
         })
 
         // 将模型回复添加到消息列表
-        const content = response.message.content
+        const content = response.choices[0]?.message.content ?? ''
         messages.push({ role: 'assistant', content: content })
 
         const thought = content.match(/<thought>([\s\S]*?)<\/thought>/)?.[1]?.trim() // 提取思考内容
@@ -69,7 +75,7 @@ while (true) {
                 messages.push({ role: 'user', content: `<observation>${result}</observation>` }) // 将执行结果添加到消息列表
                 console.log(`observation:> ${result}`) // 打印执行结果
             } catch (error) {
-                messages.push({ role: 'user', content: `<observation>命令执行失败：${error}</observation>` })
+                messages.push({ role: 'user', content: `<observation>${error}</observation>` })
                 console.log(`observation:> ${error}`) // 打印执行失败信息
             }
             continue // 有命令执行时，继续循环让模型根据 observation 决定下一步
@@ -77,7 +83,7 @@ while (true) {
 
         // 总结任务
         if (answer) {
-            console.log('\n-------ReAct End-------')
+            console.log('\n------- ReAct End -------')
             console.log(`answer:> ${answer}`)
             break
         }
